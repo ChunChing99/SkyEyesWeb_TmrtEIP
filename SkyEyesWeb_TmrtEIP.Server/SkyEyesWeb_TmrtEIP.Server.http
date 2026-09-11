@@ -1,0 +1,6 @@
+@SkyEyesWeb_TmrtEIP.Server_HostAddress = http://localhost:5278
+
+GET {{SkyEyesWeb_TmrtEIP.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

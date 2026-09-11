@@ -1,0 +1,15 @@
+﻿{
+  "Enabled": false,
+  "Forced_Execution_Task": null,
+  "Tasks": [
+    {
+      "TaskName": "TaskDeleteLog",
+      "StartTime": "2026-01-01T00:15:00",
+      "EndTime": "2050-10-01T18:00:00",
+      "IntervalInMinutes": 1440,
+      "LastRunTime": null,
+      "LastRunResult": "",
+      "NextRunTime": "2026-09-12T00:15:00"
+    }
+  ]
+}

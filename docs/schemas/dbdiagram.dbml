@@ -1,0 +1,209 @@
+// SkyEyesWeb_TmrtEIP 資料庫 Schema — DBML（供 https://dbdiagram.io 匯入顯示關聯圖）
+//
+// 依 docs/schemas/database_schema.md 現況產生，共 9 張資料表，與
+// docs/schemas/postgresql_create_tables.sql 的 DDL 一致。
+//
+// 使用方式：開啟 https://dbdiagram.io/d，貼上本檔全部內容即可看到 ER 圖。
+//
+// ⚠️ 這是目標 PostgreSQL Schema（尚未實際建立/遷移），目前實際運行中的資料庫
+// 仍是 SQL Server，詳見 docs/server/README.md「資料庫引擎（PostgreSQL 遷移中）」。
+
+Project SkyEyesWeb_TmrtEIP {
+  database_type: 'PostgreSQL'
+  Note: '中捷 EIP。SYS_tb=基本資料表，SYS_tt=交易/紀錄表，SYS_tc=代碼表。'
+}
+
+// ---------------------------------------------------------------------------
+// 系統資料表
+// ---------------------------------------------------------------------------
+
+Table SYS_tbMenu {
+  Id integer [pk, increment, note: '流水號']
+  Type varchar(10) [not null, default: 'app', note: '型態']
+  Name varchar(20) [note: '節點名稱']
+  Path varchar(50) [note: '節點路徑']
+  Ord integer [not null, default: 0, note: '排序']
+  ParentId integer [not null, default: 0, note: '父節點id；0=頂層，邏輯參照 Id，未建立實體 FK']
+  Icon varchar(50) [note: 'Icon路徑']
+  NewWindow varchar(1) [not null, default: 'N', note: '是否開新分頁']
+  Enabled varchar(1) [not null, default: 'Y', note: '是否啟用']
+  Visible varchar(1) [not null, default: 'Y', note: '是否顯示']
+  Global varchar(1) [not null, default: 'N', note: '是否為全域']
+  Auth varchar(1) [not null, default: 'Y', note: '是否驗證登入的狀態']
+  CreateDate timestamp [not null, default: `now()`, note: '新增時間']
+
+  Note: '選單資料表'
+}
+
+Table SYS_tbPasswordValidationRules {
+  Id integer [pk, increment, note: '流水號']
+  RuleName varchar(100) [not null, note: '名稱']
+  MinLength integer [not null, default: 8, note: '密碼最小長度']
+  PasswordChangeFrequencyDays integer [not null, default: 90, note: '密碼更新頻率']
+  MinUppercaseLength integer [not null, default: 1, note: '大寫英文最小長度']
+  MinLowercaseLength integer [not null, default: 1, note: '小寫英文最小長度']
+  MinSpecialCharLength integer [not null, default: 1, note: '特殊符號最小長度']
+  MinNumericLength integer [not null, default: 1, note: '數字最小長度']
+  TokenLimit integer [not null, default: 480, note: 'Token期限(分鐘)']
+  MaxFailedLogin integer [not null, default: 3, note: '登入失敗次數上限']
+  AccountLockoutTime integer [not null, default: 30, note: '帳號鎖定時間(分鐘)']
+  IsActive boolean [not null, default: true, note: '是否啟用']
+  update_dt timestamp [note: '更新時間']
+  update_user varchar(20) [note: '更新人員']
+  insert_dt timestamp [default: `now()`, note: '新增時間']
+  insert_user varchar(20) [note: '新增人員']
+
+  Note: '密碼驗證規則表'
+}
+
+// ---------------------------------------------------------------------------
+// 人事組織資料表（新設計，應用程式碼尚未串接，詳見 database_schema.md「備註」）
+// ---------------------------------------------------------------------------
+
+Table SYS_tbOrg {
+  Id integer [pk, increment, note: '流水號']
+  Code varchar(20) [note: '組織代碼（可對應人事系統組織代碼）']
+  Name varchar(50) [not null, note: '組織名稱']
+  ParentId integer [not null, default: 0, note: '父組織id；0=頂層，邏輯參照 Id，未建立實體 FK']
+  OrgType varchar(10) [note: '組織類型（如：處/部/課/組）']
+  Ord integer [not null, default: 0, note: '排序']
+  Manager_User_No varchar(20) [note: '主管帳號；與 SYS_tbUser 循環相依，FK 於建表後以 ALTER TABLE 補上']
+  Enabled boolean [not null, default: true, note: '是否啟用']
+  update_dt timestamp [note: '更新時間']
+  update_user varchar(20) [note: '更新人員']
+  insert_dt timestamp [not null, default: `now()`, note: '新增時間']
+  insert_user varchar(20) [note: '新增人員']
+
+  Note: '組織資料表'
+}
+
+Table SYS_tcRank {
+  Id integer [pk, increment, note: '流水號']
+  Code varchar(20) [note: '職等代碼（如：薦8）']
+  Name varchar(50) [not null, note: '職等名稱（如：薦任八職等）']
+  Level integer [not null, default: 0, note: '職等層級數值，數字越大代表職等越高']
+  Enabled boolean [not null, default: true, note: '是否啟用']
+  update_dt timestamp [note: '更新時間']
+  update_user varchar(20) [note: '更新人員']
+  insert_dt timestamp [not null, default: `now()`, note: '新增時間']
+  insert_user varchar(20) [note: '新增人員']
+
+  Note: '職等代碼表（SYS_tc 前綴首例）'
+}
+
+Table SYS_tbPosition {
+  Id integer [pk, increment, note: '流水號']
+  Code varchar(20) [note: '職稱代碼']
+  Name varchar(50) [not null, note: '職稱名稱']
+  Rank_id integer [note: '所屬職等id；一個職等可對應多個職稱']
+  Ord integer [not null, default: 0, note: '排序']
+  Enabled boolean [not null, default: true, note: '是否啟用']
+  update_dt timestamp [note: '更新時間']
+  update_user varchar(20) [note: '更新人員']
+  insert_dt timestamp [not null, default: `now()`, note: '新增時間']
+  insert_user varchar(20) [note: '新增人員']
+
+  Note: '職稱資料表'
+}
+
+Table SYS_tbGroup {
+  Id integer [pk, increment, note: '流水號']
+  Code varchar(20) [note: '群組代碼']
+  Name varchar(50) [not null, note: '群組名稱']
+  Description varchar(200) [note: '群組說明']
+  Enabled boolean [not null, default: true, note: '是否啟用']
+  update_dt timestamp [note: '更新時間']
+  update_user varchar(20) [note: '更新人員']
+  insert_dt timestamp [not null, default: `now()`, note: '新增時間']
+  insert_user varchar(20) [note: '新增人員']
+
+  Note: '權限群組資料表'
+}
+
+Table SYS_tbUser {
+  User_No varchar(20) [pk, note: '帳號/工號']
+  User_Name varchar(50) [not null, note: '姓名']
+  Password varchar(255) [note: '密碼（雜湊後儲存）']
+  Org_id integer [note: '所屬組織id']
+  Position_id integer [note: '職稱id']
+  UserGroup_id integer [note: '權限群組id']
+  Manager_User_No varchar(20) [note: '直屬主管帳號；自我參考，FK 於建表後以 ALTER TABLE 補上']
+  User_Tel varchar(20) [note: '聯絡電話']
+  Email varchar(100) [note: '電子郵件']
+  SystemSource varchar(10) [note: '系統來源（如 Web/App）']
+  UserType varchar(10) [note: '使用者類別']
+  IsActive boolean [not null, default: true, note: '是否在職/啟用']
+  HireDate date [note: '到職日']
+  ResignDate date [note: '離職日']
+  FailedLoginCount integer [not null, default: 0, note: '登入失敗次數']
+  LockoutEndDate timestamp [note: '帳號鎖定解除時間']
+  PasswordUpdateDate timestamp [note: '密碼最後更新時間']
+  update_dt timestamp [note: '更新時間']
+  update_user varchar(20) [note: '更新人員']
+  insert_dt timestamp [not null, default: `now()`, note: '新增時間']
+  insert_user varchar(20) [note: '新增人員']
+
+  Note: '使用者/員工資料表'
+}
+
+// ---------------------------------------------------------------------------
+// 系統交易/紀錄表
+// ---------------------------------------------------------------------------
+
+Table SYS_ttLog {
+  Id bigint [pk, increment, note: '流水號']
+  User_No varchar(20) [note: '帳號；未登入時寫入空字串而非 NULL，邏輯參照 SYS_tbUser.User_No，未建立實體 FK']
+  WebPage varchar(100) [note: '網頁路徑']
+  Api varchar(100) [note: 'API']
+  PostData text [note: '傳送資料']
+  Token text [note: 'web token']
+  ReturnNumber varchar(5) [note: '回傳狀態代碼']
+  ReturnMsg text [note: '回傳訊息']
+  SystemTime timestamp [not null, default: `now()`, note: '系統時間']
+
+  Note: '操作日誌表'
+}
+
+Table SYS_ttToken {
+  TokenTime varchar(20) [pk, note: '時間戳記']
+  Token text [note: 'token']
+  SignOut timestamp [note: '登出時間']
+
+  Note: 'Token管理表；與 SYS_tbUser 無直接 FK，TokenTime 對應登入時 Token payload 的時間戳'
+}
+
+// ---------------------------------------------------------------------------
+// 關聯（含未建立實體 FK 約束的邏輯關聯，皆已於欄位 note 標註原因）
+// ---------------------------------------------------------------------------
+
+Ref: SYS_tbMenu.ParentId > SYS_tbMenu.Id // 選單自我參考（0=頂層，未建立實體 FK）
+Ref: SYS_tbOrg.ParentId > SYS_tbOrg.Id // 組織自我參考（0=頂層，未建立實體 FK）
+Ref: SYS_tbOrg.Manager_User_No > SYS_tbUser.User_No // 組織主管；與下方使用者 FK 形成循環相依
+Ref: SYS_tbPosition.Rank_id > SYS_tcRank.Id // 職稱所屬職等
+Ref: SYS_tbUser.Org_id > SYS_tbOrg.Id // 使用者所屬組織
+Ref: SYS_tbUser.Position_id > SYS_tbPosition.Id // 使用者職稱
+Ref: SYS_tbUser.UserGroup_id > SYS_tbGroup.Id // 使用者權限群組
+Ref: SYS_tbUser.Manager_User_No > SYS_tbUser.User_No // 使用者自我參考（直屬主管）
+Ref: SYS_ttLog.User_No > SYS_tbUser.User_No // 操作日誌帳號，邏輯關聯，未建立實體 FK
+
+// ---------------------------------------------------------------------------
+// 分組（僅影響 dbdiagram.io 畫布上的視覺分區）
+// ---------------------------------------------------------------------------
+
+TableGroup 系統資料表 {
+  SYS_tbMenu
+  SYS_tbPasswordValidationRules
+}
+
+TableGroup 人事組織資料表 {
+  SYS_tbOrg
+  SYS_tcRank
+  SYS_tbPosition
+  SYS_tbGroup
+  SYS_tbUser
+}
+
+TableGroup 系統交易紀錄表 {
+  SYS_ttLog
+  SYS_ttToken
+}

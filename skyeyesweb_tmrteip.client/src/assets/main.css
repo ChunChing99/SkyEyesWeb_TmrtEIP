@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/* 深色模式改用 class 觸發（main.ts 的 DoSetTheme 會在 <html> 上切換 .dark），
+   而非只依賴瀏覽器 prefers-color-scheme。 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+body {
+  font-family:
+    'Segoe UI',
+    -apple-system,
+    BlinkMacSystemFont,
+    Roboto,
+    'Noto Sans TC',
+    'Helvetica Neue',
+    Arial,
+    sans-serif;
+}

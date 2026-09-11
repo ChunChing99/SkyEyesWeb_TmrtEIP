@@ -1,0 +1,10 @@
+{
+    "version": 1,
+    "preset": "Aura",
+    "primary": "#00aaff",
+    "surface": "#64748b",
+    "content": "#ffffff",
+    "menu": "#00aaff",
+    "menuMode": "static",
+    "darkTheme": true
+}
