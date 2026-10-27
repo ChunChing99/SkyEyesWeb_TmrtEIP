@@ -11,6 +11,11 @@
       <template #content>
         <p class="text-surface-600 dark:text-surface-300">登入頁面尚未實作（待後端使用者資料表建立）。</p>
       </template>
+      <template #footer>
+        <router-link to="/home">
+          <Button label="進入首頁（DEMO）" icon="pi pi-home" class="w-full" />
+        </router-link>
+      </template>
     </Card>
   </div>
 </template>

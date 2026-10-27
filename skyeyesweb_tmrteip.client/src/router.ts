@@ -9,6 +9,20 @@ const routes: RouteRecordRaw[] = [
     name: 'login',
     component: () => import('@/web/Login/Login.vue'),
   },
+  // 首頁（DEMO，暫以靜態路由註冊、不需登入；版型見 src/layout/AppLayout.vue）。
+  // 待後端選單/登入就緒後，改由 SYS_tbMenu 動態註冊並開啟 requiresAuth。
+  {
+    path: '/home',
+    component: () => import('@/layout/AppLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'home',
+        component: () => import('@/web/Home/Home.vue'),
+        meta: { title: '首頁' },
+      },
+    ],
+  },
   // Sakai 前端範本/模版（僅供參考、開發時瀏覽用），見 docs/client/README.md
   ...sakaiRoutes,
   // 其他路由配置（依 Menu 動態註冊，見下方 fetchDynamicRoutes）
